@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TU FloodSafe - แพลตฟอร์มรับมือน้ำท่วม มหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต</title>
+    <style>
+        :root {
+            --tu-red: #8B0000;
+            --tu-yellow: #E5A823;
+            --tu-dark: #1F2937;
+            --bg-gray: #F8F9FA;
+            --white: #FFFFFF;
+            --border-color: #E5E7EB;
+            --danger: #DC2626;
+            --warning: #D97706;
+            --success: #16A34A;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, 'Sarabun', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            color: var(--tu-dark);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Header */
+        header {
+            background: linear-gradient(135deg, var(--tu-red) 0%, #680000 100%);
+            color: var(--white);
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        header h1 {
+            font-size: 1.45rem;
+            font-weight: 700;
+        }
+
+        header h1 span {
+            color: var(--tu-yellow);
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: #FEE2E2;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background-color: #550000;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 6px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav button {
+            background: transparent;
+            border: none;
+            color: #F3F4F6;
+            padding: 10px 16px;
+            margin: 2px 4px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        nav button:hover,
+        nav button.active {
+            background-color: var(--tu-yellow);
+            color: #550000;
+            font-weight: bold;
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            max-width: 1080px;
+            width: 100%;
+            margin: 25px auto;
+            padding: 0 16px;
+        }
+
+        .page-section {
+            display: none;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-color);
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        h2 {
+            color: var(--tu-red);
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            border-bottom: 3px solid var(--tu-yellow);
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+
+        .sub-desc {
+            color: #6B7280;
+            margin-bottom: 22px;
+            font-size: 0.95rem;
+        }
+
+        /* Alert Banner */
+        .alert-banner {
+            background-color: #FEF2F2;
+            border-left: 5px solid var(--danger);
+            padding: 14px 18px;
+            margin-bottom: 22px;
+            border-radius: 6px;
+            color: #991B1B;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Grid Layouts & Cards */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 18px;
+            margin-top: 15px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 15px;
+        }
+
+        .card {
+            background: #FAFAFA;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 18px;
+            transition: transform 0.15s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .card h3 {
+            font-size: 1.15rem;
+            color: var(--tu-red);
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 0.92rem;
+            line-height: 1.6;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .news-source {
+            display: inline-block;
+            font-size: 0.8rem;
+            color: #6B7280;
+            background: #E5E7EB;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .badge-danger {
+            background-color: var(--danger);
+        }
+
+        .badge-warning {
+            background-color: var(--warning);
+        }
+
+        .badge-success {
+            background-color: var(--success);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0 25px;
+            font-size: 0.92rem;
+        }
+
+        table th,
+        table td {
+            border: 1px solid var(--border-color);
+            padding: 12px 14px;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #F9FAFB;
+            color: var(--tu-red);
+            font-weight: 600;
+        }
+
+        /* Form Styles */
+        form label {
+            display: block;
+            margin: 12px 0 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        form input,
+        form select,
+        form textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: #FFFFFF;
+        }
+
+        form button,
+        .btn {
+            display: inline-block;
+            background-color: var(--tu-red);
+            color: var(--white);
+            border: none;
+            padding: 11px 22px;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            margin-top: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        form button:hover,
+        .btn:hover {
+            background-color: #6B0000;
+        }
+
+        .btn-secondary {
+            background-color: #4B5563;
+        }
+
+        .btn-secondary:hover {
+            background-color: #374151;
+        }
+
+        /* Map Frame */
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--tu-dark);
+            color: #9CA3AF;
+            text-align: center;
+            padding: 18px;
+            font-size: 0.85rem;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Top Header -->
+    <header>
+        <div>
+            <h1>TU <span>FloodSafe</span></h1>
+            <p>ระบบข้อมูลข่าวสารและบริการช่วยเหลือผู้ประสบอุทกภัย มธ. ศูนย์รังสิต</p>
+        </div>
+    </header>
+
+    <!-- 8-Page Navigation Bar -->
+    <nav id="navBar">
+        <button class="active" onclick="showPage('p1')">1. หน้าแรก</button>
+        <button onclick="showPage('p2')">2. ข่าวน้ำท่วม มธ.จริง</button>
+        <button onclick="showPage('p3')">3. แผนที่ Google Maps</button>
+        <button onclick="showPage('p4')">4. บริการรถรับ-ส่ง</button>
+        <button onclick="showPage('p5')">5. จุดจอดรถหนีน้ำ</button>
+        <button onclick="showPage('p6')">6. บริการ & ค่าธรรมเนียม</button>
+        <button onclick="showPage('p7')">7. รายงานจุดท่วม & รีวิว</button>
+        <button onclick="showPage('p8')">8. เกี่ยวกับเรา & สายด่วน</button>
+    </nav>
+
+    <main>
+        <!-- หน้า 1: หน้าแรก (Home) -->
+        <section id="p1" class="page-section active">
+            <div class="alert-banner">
+                <strong>⚠️ สถานการณ์ล่าสุด:</strong> เฝ้าระวังน้ำขังช่องทางคู่ขนาน ถ.พหลโยธิน หน้าประตูใหญ่ มธ.
+                และจุดกลับรถเชียงรากหลังมีฝนตกหนักต่อเนื่อง รถเล็กโปรดใช้ทางยกระดับหรือชิดขวา
+            </div>
+            <h2>ศูนย์ข้อมูลและการบริการภัยน้ำท่วม มธ. รังสิต</h2>
+            <p class="sub-desc">แพลตฟอร์มแก้ปัญหา (Pain Point) สำหรับประชาคมธรรมศาสตร์ เพื่อไม่ให้การเดินทาง ทรัพย์สิน
+                และการเรียนต้องสะดุดช่วงฤดูน้ำหลาก</p>
+
+            <div class="grid-3">
+                <div class="card">
+                    <h3>ข่าวจริง & สถิติน้ำ</h3>
+                    <p>ติดตามรายงานน้ำท่วมแบบเรียลไทม์ อ้างอิงแหล่งข้อมูลจราจร สวพ.FM91 และเทศบาลคลองหลวง</p>
+                    <span class="badge badge-warning">เฝ้าระวัง 2 จุด</span>
+                </div>
+                <div class="card">
+                    <h3>แผนที่ Google Maps</h3>
+                    <p>ระบุพิกัดถนนและประตู มธ. ที่มีน้ำท่วมขัง พร้อมเปิดดูการจราจรสดบน Google Maps</p>
+                    <span class="badge badge-success">อัปเดตตำแหน่งแล้ว</span>
+                </div>
+                <div class="card">
+                    <h3>รถรับ-ส่งลุยน้ำ</h3>
+                    <p>บริการยานพาหนะยกสูงรับนักศึกษาติดค้างจากหอพักภายนอกเข้ามายังอาคารเรียน</p>
+                    <span class="badge badge-success">สแตนด์บาย 4 คัน</span>
+                </div>
+            </div>
+
+            <div
+                style="margin-top: 25px; padding: 20px; background: #FFFBEB; border-radius: 8px; border: 1px solid #FDE68A;">
+                <h4 style="color: #92400E; margin-bottom: 6px;">💡 จุดประสงค์ของโครงการ TU FloodSafe</h4>
+                <p style="font-size: 0.92rem; color: #78350F; line-height: 1.6;">
+                    พัฒนาขึ้นจากปัญหาจริงที่นักศึกษาต้องเผชิญในฤดูฝน ทั้งรถมอเตอร์ไซค์/สกู๊ตเตอร์ไฟฟ้าจมน้ำเสียหาย
+                    รถโดยสาร NGV ขาดช่วง และการขาดข้อมูลเส้นทางที่แน่นอน แพลตฟอร์มนี้จึงเชื่อมโยงข้อมูลข่าวสาร การนำทาง
+                    และบริการช่วยเหลือเข้าไว้ด้วยกันอย่างเป็นระบบ
+                </p>
+            </div>
+        </section>
+
+        <!-- หน้า 2: ข่าวจริงน้ำท่วม มธ. รังสิต (Real Flood News) -->
+        <section id="p2" class="page-section">
+            <h2>รายงานข่าวสถานการณ์น้ำท่วมจริง มธ. รังสิต & คลองหลวง</h2>
+            <p class="sub-desc">รวบรวมข่าวสาร เหตุการณ์จริง และการแจ้งเตือนจากหน่วยงานภาครัฐและสถานีข่าวจราจร</p>
+
+            <div class="card" style="margin-bottom: 16px;">
+                <h3>1. น้ำท่วมขังช่องทางคู่ขนาน ถ.พหลโยธิน ขาออก ช่วงบางขัน - มธ.ศูนย์รังสิต</h3>
+                <p>
+                    หลังเกิดฝนตกหนักต่อเนื่องในพื้นที่ อ.คลองหลวง จ.ปทุมธานี
+                    ส่งผลให้น้ำระบายไม่ทันเอ่อท่วมช่องคู่ขนานหน้าทางเข้ามหาวิทยาลัยธรรมศาสตร์
+                    และหน้าโรงพยาบาลธรรมศาสตร์เฉลิมพระเกียรติ ระดับน้ำ 15-25 ซม. รถเก๋งและรถจักรยานยนต์ต้องชะลอตัว
+                    การจราจรติดสะสม
+                </p>
+                <span class="news-source">แหล่งข่าว: รายงานจราจร สวพ.FM91 / จส.100</span>
+            </div>
+
+            <div class="card" style="margin-bottom: 16px;">
+                <h3>2. เทศบาลเฝ้าระวังระดับน้ำคลองรังสิตประยูรศักดิ์และคลองเชียงราก</h3>
+                <p>
+                    ศูนย์บัญชาการสถานการณ์น้ำ จ.ปทุมธานี แจ้งยกระดับการเฝ้าระวังระดับน้ำคลองรังสิตหลังแตะเกณฑ์เสี่ยง
+                    พร้อมเดินเครื่องสูบน้ำสถานีสูบน้ำจุฬาลงกรณ์เพื่อเร่งพร่องน้ำออกสู่แม่น้ำเจ้าพระยาอย่างต่อเนื่องเพื่อป้องกันน้ำหนุนเข้าท่วมพื้นที่การศึกษาและชุมชนโดยรอบ
+                </p>
+                <span class="news-source">แหล่งข่าว: กองอำนวยการป้องกันและบรรเทาสาธารณภัย จ.ปทุมธานี</span>
+            </div>
+
+            <div class="card" style="margin-bottom: 16px;">
+                <h3>3. จุดกลับรถใต้สะพานคลองเชียงราก (ข้าง มธ.) น้ำท่วมสูง รถเล็กห้ามผ่าน</h3>
+                <p>
+                    จุดกลับรถใต้สะพานข้ามคลองเชียงรากมักมีระดับน้ำเอ่อล้นตลิ่งเข้าท่วมพื้นผิวถนนสูงกว่า 30-40 ซม.
+                    ในช่วงมรสุม มหาวิทยาลัยและเจ้าหน้าที่ตำรวจ สภ.คลองหลวง ได้นำแผงกั้นและป้ายเตือนแจ้งเลี่ยงเส้นทาง
+                    แนะนำให้นักศึกษาที่พักโซนเชียงรากใช้สะพานเกือกม้าต่างระดับบางขันแทน
+                </p>
+                <span class="news-source">แหล่งข่าว: ข่าวภูมิภาค ผู้จัดการออนไลน์ / ประชาสัมพันธ์ มธ.</span>
+            </div>
+
+            <div class="card">
+                <h3>4. ถอดบทเรียนมหาอุทกภัย มธ.รังสิต: จากศูนย์พักพิงสู่ระบบเตือนภัย</h3>
+                <p>
+                    ย้อนรอยเหตุการณ์ครั้งสำคัญที่ มธ.ศูนย์รังสิต เคยเป็นศูนย์พักพิงหลักของผู้ประสบภัย
+                    แต่แนวคันกั้นน้ำดินฝั่ง สวทช.-เอไอที ถูกกระแสน้ำกดดันจนพังทลาย
+                    ทำให้มหาวิทยาลัยต้องอพยพผู้ประสบภัยและนักศึกษา
+                    ถือเป็นบทเรียนสำคัญที่นำมาสู่การวางแผนและพัฒนาแพลตฟอร์มเฝ้าระวังน้ำในปัจจุบัน
+                </p>
+                <span class="news-source">แหล่งข่าว: บันทึกเหตุการณ์อุทกภัย Thai PBS</span>
+            </div>
+        </section>
+
+        <!-- หน้า 3: แผนที่ Google Maps สด (Live Flood Map) -->
+        <section id="p3" class="page-section">
+            <h2>แผนที่พิกัดระดับน้ำสด มธ. รังสิต (Google Maps)</h2>
+            <p class="sub-desc">แสดงพิกัดพื้นที่มหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต และสถานะการท่วมขังแบบเรียลไทม์</p>
+
+            <!-- Embedded Google Maps -->
+            <div class="map-container">
+                <iframe title="Google Maps Thammasat University Rangsit"
+                    src="https://maps.google.com/maps?q=Thammasat+University+Rangsit+Campus&t=&z=14&ie=UTF8&iwloc=&output=embed"
+                    loading="lazy">
+                </iframe>
+            </div>
+
+            <h3 style="margin-top: 20px; font-size: 1.15rem; color: var(--tu-red);">สถานะจุดสำคัญรอบรั้วมหาวิทยาลัย</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>จุดพิกัดตรวจวัด</th>
+                        <th>ระดับน้ำขัง</th>
+                        <th>สถานะ</th>
+                        <th>การเปิดดูพิกัด</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>ประตูเชียงราก 1</strong> (ทางเข้าหลักหอนอก)</td>
+                        <td>20 - 25 ซม.</td>
+                        <td><span class="badge badge-danger">น้ำท่วมขังสูง</span></td>
+                        <td><a href="https://maps.google.com/?q=ประตูเชียงราก+1+มหาวิทยาลัยธรรมศาสตร์+ศูนย์รังสิต"
+                                target="_blank" style="color: var(--tu-red); font-weight: bold;">เปิด Google Maps ↗</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>วงเวียนอาคารเรียนรวม (SC / สังคมศาสตร์)</strong></td>
+                        <td>5 - 10 ซม.</td>
+                        <td><span class="badge badge-warning">เฝ้าระวัง</span></td>
+                        <td><a href="https://maps.google.com/?q=อาคารเรียนรวมสังคมศาสตร์+มธ+รังสิต" target="_blank"
+                                style="color: var(--tu-red); font-weight: bold;">เปิด Google Maps ↗</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>หน้า รพ.ธรรมศาสตร์เฉลิมพระเกียรติ</strong></td>
+                        <td>15 ซม.</td>
+                        <td><span class="badge badge-warning">ชะลอตัวเลนซ้าย</span></td>
+                        <td><a href="https://maps.google.com/?q=โรงพยาบาลธรรมศาสตร์เฉลิมพระเกียรติ" target="_blank"
+                                style="color: var(--tu-red); font-weight: bold;">เปิด Google Maps ↗</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ลานจอด TU Dome Plaza / ถนนคลองหลวง</strong></td>
+                        <td>0 ซม.</td>
+                        <td><span class="badge badge-success">แห้ง ปกติ</span></td>
+                        <td><a href="https://maps.google.com/?q=TU+Dome+Plaza" target="_blank"
+                                style="color: var(--tu-red); font-weight: bold;">เปิด Google Maps ↗</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- หน้า 4: รถรับส่งฉุกเฉิน (Shuttle & Rescue) -->
+        <section id="p4" class="page-section">
+            <h2>บริการรถยกสูงรับ-ส่งข้ามจุดน้ำท่วม (TU Flood Shuttle)</h2>
+            <p class="sub-desc">แก้ปัญหาการเดินทางเมื่อรถเล็ก มอเตอร์ไซค์ หรือสกู๊ตเตอร์ไม่สามารถลุยน้ำได้</p>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>กรอกข้อมูลขอรับบริการรับ-ส่งด่วน</h3>
+                    <form
+                        onsubmit="alert('ส่งคำขอรับรถสำเร็จ เจ้าหน้าที่จะติดต่อกลับและส่งพิกัดคนขับทาง SMS/โทรศัพท์'); return false;">
+                        <label>ชื่อ-นามสกุล / ชื่อเล่น:</label>
+                        <input type="text" placeholder="เช่น รชต (พฤกษ์)" required>
+
+                        <label>เบอร์โทรศัพท์ติดต่อ:</label>
+                        <input type="tel" placeholder="08X-XXX-XXXX" required>
+
+                        <label>จุดที่ท่านติดค้างอยู่:</label>
+                        <select>
+                            <option>ป้ายรถเมล์ประตูเชียงราก 1</option>
+                            <option>หน้าหอพักทรงพิเชษฐ์ / ซอยรังสิตภิรมย์</option>
+                            <option>อาคารเรียนรวม SC3 / SC1</option>
+                            <option>ศูนย์อาหารทิวสน / ยิมเนเซียม</option>
+                        </select>
+
+                        <label>สถานที่ปลายทางที่ต้องการไป:</label>
+                        <input type="text" placeholder="เช่น หอพักในโซน C, หอพัก TU Dome" required>
+
+                        <button type="submit">ยืนยันเรียกรถรับ-ส่ง</button>
+                    </form>
+                </div>
+
+                <div>
+                    <div class="card" style="margin-bottom: 14px;">
+                        <h3>มาตรฐานยานพาหนะของโครงการ</h3>
+                        <p>• ใช้รถกระบะขับเคลื่อน 4 ล้อยกสูง ลุยน้ำลึกได้สูงสุด 60 ซม.<br>
+                            • มีเสื้อชูชีพและราวจับนิรภัยด้านท้ายกระบะ<br>
+                            • รองรับการขนย้ายสัมภาระ กระเป๋าแล็ปท็อป และสกู๊ตเตอร์ไฟฟ้าพับได้</p>
+                    </div>
+                    <div class="card">
+                        <h3>รอบเวลาการเดินรถช่วงชั่วโมงเร่งด่วน</h3>
+                        <p>• <strong>ช่วงเช้า:</strong> 07:30 - 09:30 น. (ทุก 15 นาที)<br>
+                            • <strong>ช่วงเย็น:</strong> 16:30 - 19:30 น. (ทุก 10 นาที)<br>
+                            • <strong>ช่วงฉุกเฉิน:</strong> บริการ On-demand 24 ชม. เมื่อมีฝนตกหนัก</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- หน้า 5: จุดจอดรถหนีน้ำ (Safe Parking Hub) -->
+        <section id="p5" class="page-section">
+            <h2>จุดจอดรถปลอดภัยหนีน้ำท่วม (Safe Parking Hub)</h2>
+            <p class="sub-desc">ตรวจสอบอาคารจอดรถชั้นสูงใน มธ. ศูนย์รังสิต เพื่อย้ายรถยนต์และจักรยานยนต์ขึ้นที่สูง</p>
+
+            <div class="grid-3">
+                <div class="card">
+                    <h3>อาคารจอดรถ บร.4</h3>
+                    <p>เปิดรองรับชั้น 2 - 4 สำหรับนักศึกษาและบุคลากรทั่วไป ทางลาดชันมาตรฐาน น้ำไม่ท่วมถึง</p>
+                    <p><strong>ช่องว่างคงเหลือ:</strong> <span style="color: var(--success); font-weight: bold;">52
+                            คัน</span></p>
+                    <span class="badge badge-success">พร้อมเข้าจอด</span>
+                </div>
+
+                <div class="card">
+                    <h3>อาคารจอดรถคุณากร (รพ.ธรรมศาสตร์)</h3>
+                    <p>เปิดชั้น 3 ขึ้นไป สำหรับผู้มาติดต่อโรงพยาบาลและบุคลากรทางการแพทย์</p>
+                    <p><strong>ช่องว่างคงเหลือ:</strong> <span style="color: var(--warning); font-weight: bold;">12
+                            คัน</span></p>
+                    <span class="badge badge-warning">ใกล้เต็ม</span>
+                </div>
+
+                <div class="card">
+                    <h3>อาคารจอดรถ TU Dome Plaza</h3>
+                    <p>พื้นที่จอดในร่มอาคารศูนย์การค้าทียูโดม สะดวกสำหรับผู้พักอาศัยฝั่งตรงข้าม มธ.</p>
+                    <p><strong>ช่องว่างคงเหลือ:</strong> <span style="color: var(--success); font-weight: bold;">95
+                            คัน</span></p>
+                    <span class="badge badge-success">พร้อมเข้าจอด</span>
+                </div>
+            </div>
+
+            <div
+                style="margin-top: 25px; padding: 15px; background: #EEF2FF; border-radius: 6px; border: 1px solid #C7D2FE;">
+                <strong>📌 ข้อแนะนำในการจอดรถหนีน้ำ:</strong> โปรดปลดเบรกมือและใส่เกียร์ว่าง (เกียร์ N) สำหรับจุดจอดขวาง
+                พร้อมวางเบอร์โทรศัพท์ติดต่อไว้หน้ารถให้ชัดเจน
+            </div>
+        </section>
+
+        <!-- หน้า 6: บริการและแพ็กเกจ (Services & Pricing) -->
+        <section id="p6" class="page-section">
+            <h2>รายละเอียดบริการ & ค่าสนับสนุนโครงการ</h2>
+            <p class="sub-desc">โมเดลธุรกิจเพื่อความยั่งยืน ให้บริการข้อมูลสาธารณะฟรี
+                และคิดค่าบริการในส่วนงานกู้ภัยทางกายภาพ</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ประเภทบริการ</th>
+                        <th>รายละเอียดการให้บริการ</th>
+                        <th>อัตราค่าบริการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>ระบบข้อมูล & แผนที่สด</strong></td>
+                        <td>เข้าถึงข่าวจริง แจ้งเตือนระดับน้ำ พิกัดน้ำท่วม</td>
+                        <td><strong style="color: var(--success);">ฟรี ตลอดการใช้งาน</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Shuttle รถรับ-ส่งลุยน้ำ</strong></td>
+                        <td>บริการรับ-ส่งระหว่างหอนอกและอาคารเรียนภายใน มธ.</td>
+                        <td><strong>20 บาท / เที่ยว</strong> (นศ. มีบัตร)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>บริการห่อหุ้มถุงกันน้ำรถจักรยานยนต์</strong></td>
+                        <td>นำถุงพลาสติกหนาพิเศษซีลป้องกันน้ำท่วมเข้าเครื่องยนต์</td>
+                        <td><strong>89 บาท / คัน</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>บริการรถสไลด์ออนฉุกเฉิน</strong></td>
+                        <td>ยกเคลื่อนย้ายรถยนต์ที่จอดเสียหรือจมน้ำไปยังอู่ซ่อม</td>
+                        <td><strong>500 บาท / ครั้ง</strong> (เครือข่ายโครงการ)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- หน้า 7: แจ้งเหตุน้ำท่วมและรีวิว (Report & Reviews) -->
+        <section id="p7" class="page-section">
+            <h2>รายงานจุดน้ำท่วม & รีวิวจากผู้ใช้งานจริง</h2>
+            <p class="sub-desc">ระบบข้อมูลแบบ Crowdsourcing ร่วมกันปักหมุดจุดเสี่ยงเพื่อสังคมธรรมศาสตร์</p>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>ส่งรายงานจุดน้ำท่วมใหม่</h3>
+                    <form
+                        onsubmit="alert('ส่งข้อมูลรายงานสำเร็จ ข้อมูลจะถูกตรวจสอบและแสดงบนแผนที่สดภายใน 3 นาที'); return false;">
+                        <label>สถานที่พบน้ำท่วม:</label>
+                        <input type="text" placeholder="เช่น ซอยรังสิตภิรมย์ กลางซอย" required>
+
+                        <label>ระดับความสูงของน้ำ:</label>
+                        <select>
+                            <option>ระดับตาตุ่ม (ประมาณ 5 - 10 ซม.)</option>
+                            <option>ระดับครึ่งแข้ง (ประมาณ 15 - 20 ซม.)</option>
+                            <option>ระดับหัวเข่า (30 ซม. ขึ้นไป - รถเล็กห้ามผ่าน)</option>
+                        </select>
+
+                        <label>สภาพการจราจร / สิ่งกีดขวาง:</label>
+                        <textarea rows="3" placeholder="เช่น มีรถดับขวาง 1 คัน หรือน้ำกำลังดันออกจากท่อ"></textarea>
+
+                        <button type="submit">ส่งรายงานเข้าสู่ระบบ</button>
+                    </form>
+                </div>
+
+                <div>
+                    <h3>ความคิดเห็นและรีวิวจากนักศึกษา</h3>
+                    <div class="card" style="margin-top: 10px;">
+                        <p>⭐⭐⭐⭐⭐ "เมื่อคืนฝนตกหนักมาก หน้าประตูเชียงรากน้ำท่วมเกือบมิดล้อ ดีที่เช็กในเว็บแล้วใช้บริการ
+                            Shuttle รถยกสูง รอดตัวเลยครับ"</p>
+                        <small style="color: #6B7280;">— นศ. คณะพาณิชย์ฯ ชั้นปีที่ 2</small>
+                    </div>
+                    <div class="card" style="margin-top: 12px;">
+                        <p>⭐⭐⭐⭐⭐ "แผนที่แม่นยำมากค่ะ มีลิงก์เปิด Google Maps
+                            นำทางเลี่ยงจุดน้ำท่วมหน้าพหลโยธินได้ทันเวลา"</p>
+                        <small style="color: #6B7280;">— นศ. สถาบันเทคโนโลยีนานาชาติสิรินธร (SIIT)</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- หน้า 8: เกี่ยวกับเราและติดต่อฉุกเฉิน (About Us & Contacts) -->
+        <section id="p8" class="page-section">
+            <h2>เกี่ยวกับโครงการ & ศูนย์ประสานงานฉุกเฉิน</h2>
+            <p class="sub-desc">โครงการพัฒนาเว็บไซต์เพื่อแก้ปัญหาชุมชน มหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต</p>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>สายด่วนฉุกเฉิน มธ. รังสิต (24 ชั่วโมง)</h3>
+                    <p style="line-height: 2;">
+                        📞 ศูนย์วิทยุ รปภ. มธ. รังสิต: <strong>02-564-4444 ต่อ 1191</strong><br>
+                        📞 ศูนย์กู้ชีพ รพ.ธรรมศาสตร์ฯ: <strong>02-926-9999</strong> หรือ <strong>1669</strong><br>
+                        📞 กองยานพาหนะและอาคารสถานที่ มธ.: <strong>02-564-4440</strong><br>
+                        📞 สายด่วนกู้ภัย TU FloodSafe: <strong>081-234-5678</strong>
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>ข้อมูลผู้พัฒนาโครงงาน</h3>
+                    <p>
+                        <strong>ชื่อโครงงาน:</strong>TU FloodSafe<br>
+                    <p>ปาณัทพงษ์ อินประดิษฐ์ 6924650069</p>
+                    <p>ศุภณัฐ พุ่มพึ่งศรี 6924650572</p>
+                    <p>รชต มังกรประดิษฐ์ 6924650044</p>
+                    <p>ธนาธิป ทับอุดม 6924650242</p>
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 TU FloodSafe Project - มหาวิทยาลัยธรรมศาสตร์ ศูนย์รังสิต |
+            เพื่อการศึกษาและส่งเสริมความปลอดภัยในชุมชน</p>
+    </footer>
+
+    <!-- Simple Page Switcher Script -->
+    <script>
+        function showPage(pageId) {
+            // ซ่อนหน้าทั้งหมด
+            const pages = document.querySelectorAll('.page-section');
+            pages.forEach(p => p.classList.remove('active'));
+
+            // เอาสถานะ active ออกจากปุ่มนำทางทั้งหมด
+            const buttons = document.querySelectorAll('#navBar button');
+            buttons.forEach(b => b.classList.remove('active'));
+
+            // เปิดหน้าที่เลือก
+            document.getElementById(pageId).classList.add('active');
+
+            // กำหนดปุ่มที่คลิกให้เป็น active
+            event.target.classList.add('active');
+
+            // เลื่อนจอกลับขึ้นบนสุดอย่างนุ่มนวล
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>
